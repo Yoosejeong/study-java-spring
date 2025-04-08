@@ -3,6 +3,7 @@ package hello.core.scope;
 import hello.core.scope.PrototypeTest.PrototypeBean;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import javax.inject.Provider;
 import org.assertj.core.api.Assertions;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.AutoClose;
@@ -44,10 +45,10 @@ public class SingletonWithPrototypeTest1 {
     static class ClientBean{
 
         @Autowired
-        private ObjectProvider<PrototypeBean> prototypeBeanProvider;
+        private Provider<PrototypeBean> prototypeBeanProvider;
 
         public int logic() {
-            PrototypeBean prototypeBean = prototypeBeanProvider.getObject();
+            PrototypeBean prototypeBean = prototypeBeanProvider.get();
             prototypeBean.addCount();
             int count = prototypeBean.getCount();
             return count;
