@@ -19,6 +19,7 @@ public class SpringMemberControllerV2 {
     public ModelAndView newForm(){
         return new ModelAndView("new-form");
     }
+
     @RequestMapping("/save")
     public ModelAndView save(HttpServletRequest request, HttpServletResponse
             response){
