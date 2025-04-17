@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: jpashop
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/jpashopdb?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: passwd
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: trace
