@@ -30,7 +30,7 @@ public class OrderRepository {
         return em.find(Order.class, id);
     }
 
-    public List<Order> findALl(OrderSearch orderSearch){
+    public List<Order> findAll(OrderSearch orderSearch) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Order> cq = cb.createQuery(Order.class);
 
@@ -41,26 +41,27 @@ public class OrderRepository {
 
         // 주문 상태 검색
         if (orderSearch.getOrderStatus() != null) {
-            Predicate status = cb.equal(o.get("status"), orderSearch.getOrderStatus());
-            criteria.add(status);
+            Predicate orderStatus = cb.equal(o.get("orderStatus"), orderSearch.getOrderStatus());
+            criteria.add(orderStatus);
         }
 
         // 회원 이름 검색
         if (StringUtils.hasText(orderSearch.getMemberName())) {
-            Predicate name = cb.like(
-                    m.<String>get("name"),
+            Predicate memberName = cb.like(
+                    m.get("name"),
                     "%" + orderSearch.getMemberName() + "%"
             );
-            criteria.add(name);
+            criteria.add(memberName);
         }
 
-        // where 조건 설정
+        // where 절 적용
         cq.where(cb.and(criteria.toArray(new Predicate[0])));
 
-        // 최대 1000건으로 제한하여 쿼리 실행
-        TypedQuery<Order> query = em.createQuery(cq).setMaxResults(1000);
-        return query.getResultList();
-
+        // 최대 1000건으로 결과 제한
+        return em.createQuery(cq)
+                .setMaxResults(1000)
+                .getResultList();
     }
+
 
 }
