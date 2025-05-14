@@ -24,7 +24,7 @@ public class OrderApiController {
     private final OrderRepository orderRepository;
     private final OrderQueryRepository orderQueryRepository;
 
-    @GetMapping("/api/v1/orders")
+    /*@GetMapping("/api/v1/orders")
     public List<Order> orderV1(){
         List<Order> all = orderRepository.findAll(new OrderSearch());
         for (Order order : all) {
@@ -36,6 +36,8 @@ public class OrderApiController {
         return all;
     }
 
+
+
     @GetMapping("/api/v2/orders")
     public List<OrderDto> orderV2(){
         List<Order> orders = orderRepository.findAll(new OrderSearch());
@@ -44,6 +46,8 @@ public class OrderApiController {
                 .collect(Collectors.toList());
         return collect;
     }
+
+     */
 
     @GetMapping("/api/v3/orders")
     public List<OrderDto> orderV3(){
@@ -75,7 +79,6 @@ public class OrderApiController {
     public List<OrderQueryDto> orderV5() {
         return orderQueryRepository.findAllByDto_optimization();
     }
-
 
     @Data
     static class OrderDto{
