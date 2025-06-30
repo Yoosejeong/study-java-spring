@@ -2,6 +2,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -127,10 +128,7 @@ public class QuerydslBasicTest {
     }
 
     /**
-     * 회원 정렬 순서
-     * 1. 회원 나이 내림차순(desc)
-     * 2. 회원 이름 올림차순(asc)
-     * 단 2에서 회원 이름이 없으면 마지막에 출력(nulls last)
+     * 회원 정렬 순서 1. 회원 나이 내림차순(desc) 2. 회원 이름 올림차순(asc) 단 2에서 회원 이름이 없으면 마지막에 출력(nulls last)
      */
     @Test
     public void sort() {
@@ -150,7 +148,8 @@ public class QuerydslBasicTest {
 
         assertThat(member5.getUsername()).isEqualTo("member5");
         assertThat(member6.getUsername()).isEqualTo("member6");
-        assertThat(memberNull.getUsername()).isNull();;
+        assertThat(memberNull.getUsername()).isNull();
+        ;
     }
 
     @Test
@@ -182,14 +181,8 @@ public class QuerydslBasicTest {
     }
 
     /**
-     * JPQL
-     * select
-     *    COUNT(m),   //회원수
-     *    SUM(m.age), //나이 합
-     *    AVG(m.age), //평균 나이
-     *    MAX(m.age), //최대 나이
-     *    MIN(m.age)  //최소 나이
-     * from Member m
+     * JPQL select COUNT(m),   //회원수 SUM(m.age), //나이 합 AVG(m.age), //평균 나이 MAX(m.age), //최대 나이 MIN(m.age)  //최소 나이 from
+     * Member m
      */
     @Test
     public void aggregation() throws Exception {
@@ -248,8 +241,7 @@ public class QuerydslBasicTest {
     }
 
     /**
-     * 세타 조인(연관관계가 없는 필드로 조인)
-     * 회원의 이름이 팀 이름과 같은 회원 조회
+     * 세타 조인(연관관계가 없는 필드로 조인) 회원의 이름이 팀 이름과 같은 회원 조회
      */
     @Test
     public void theta_join() throws Exception {
@@ -269,13 +261,11 @@ public class QuerydslBasicTest {
     }
 
     /**
-     * 2. 연관관계 없는 엔티티 외부 조인
-     * 예) 회원의 이름과 팀의 이름이 같은 대상 외부 조인
-     * JPQL: SELECT m, t FROM Member m LEFT JOIN Team t on m.username = t.name
-     * SQL: SELECT m.*, t.* FROM  Member m LEFT JOIN Team t ON m.username = t.name
+     * 2. 연관관계 없는 엔티티 외부 조인 예) 회원의 이름과 팀의 이름이 같은 대상 외부 조인 JPQL: SELECT m, t FROM Member m LEFT JOIN Team t on m.username
+     * = t.name SQL: SELECT m.*, t.* FROM  Member m LEFT JOIN Team t ON m.username = t.name
      */
     @Test
-    public void join_on_no_relation() throws Exception{
+    public void join_on_no_relation() throws Exception {
         em.persist(new Member("teamA"));
         em.persist(new Member("teamB"));
 
@@ -294,6 +284,7 @@ public class QuerydslBasicTest {
 
     @PersistenceUnit
     EntityManagerFactory emf;
+
     @Test
     public void fetchJoinNo() throws Exception {
         em.flush();
@@ -323,5 +314,88 @@ public class QuerydslBasicTest {
         boolean loaded =
                 emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
         assertThat(loaded).as("페치 조인 적용").isTrue();
+    }
+
+    /**
+     * 나이가 가장 많은 회원 조회
+     */
+    @Test
+    public void subQuery() throws Exception {
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.eq(
+                        JPAExpressions
+                                .select(memberSub.age.max())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        assertThat(result)
+                .extracting("age")
+                .containsExactly(40);
+    }
+
+    /**
+     * 나이가 평균 나이 이상인 회원
+     */
+    @Test
+    public void subQueryGoe() throws Exception {
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.goe(
+                        JPAExpressions
+                                .select(memberSub.age.avg())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        assertThat(result).extracting("age")
+                .containsExactly(30,40);
+    }
+
+    /**
+     * 서브쿼리 여러 건 처리, in 사용
+     */
+    @Test
+    public void subQueryIn() throws Exception {
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.in(
+                        JPAExpressions
+                                .select(memberSub.age)
+                                .from(memberSub)
+                                .where(memberSub.age.gt(10))
+                ))
+                .fetch();
+
+        assertThat(result)
+                .extracting("age")
+                .containsExactly(20, 30, 40);
+    }
+
+    @Test
+    void selectSubQuer() {
+        QMember memberSub = new QMember("memberSub");
+
+        List<Tuple> result = queryFactory
+                .select(member.username,
+                        JPAExpressions
+                                .select(memberSub.age.avg())
+                                .from(memberSub))
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("username = " + tuple.get(member.username));
+            System.out.println("age = " +
+                    tuple.get(JPAExpressions.select(memberSub.age.avg())
+                            .from(memberSub)));
+        }
     }
 }
