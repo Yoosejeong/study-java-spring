@@ -30,7 +30,6 @@ import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import static study.querydsl.entity.QMember.member;
-import study.querydsl.entity.QTeam;
 import static study.querydsl.entity.QTeam.*;
 import study.querydsl.entity.Team;
 
@@ -118,6 +117,7 @@ public class QuerydslBasicTest {
         //단 건
         Member fetchOne = queryFactory
                 .selectFrom(member)
+                .where(member.username.eq("member1"))
                 .fetchOne();
 
         //처음 한 건
