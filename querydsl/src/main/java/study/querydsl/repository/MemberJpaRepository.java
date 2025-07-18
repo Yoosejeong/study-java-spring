@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
@@ -50,8 +51,11 @@ public class MemberJpaRepository {
 
     public List<MemberTeamDto> searchByBuilder(MemberSearchCondition condition){
         BooleanBuilder builder = new BooleanBuilder();
-        if (condition.getUsername() != null){
+        if (StringUtils.hasText(condition.getUsername())){
             builder.and(member.username.eq(condition.getUsername()));
+        }
+        if(StringUtils.hasText(condition.getTeamName())){
+            builder.and(team.name.eq(condition.getTeamName()));
         }
         if (condition.getAgeGoe() != null){
             builder.and(member.age.goe(condition.getAgeGoe()));
@@ -59,9 +63,7 @@ public class MemberJpaRepository {
         if (condition.getAgeLoe() != null){
             builder.and(member.age.loe(condition.getAgeLoe()));
         }
-        if(condition.getTeamName() != null){
-            builder.and(team.name.eq(condition.getTeamName()));
-        }
+
 
         return queryFactory
                 .select(new QMemberTeamDto(member.id, member.username, member.age, team.id, team.name))
